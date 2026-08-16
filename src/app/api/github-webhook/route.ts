@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
  */
 const WORKFLOW_REPO = process.env.WORKFLOW_REPO ?? '';
 const WORKFLOW_FILE = process.env.WORKFLOW_FILE ?? 'review.yml';
-const WORKFLOW_REF = process.env.WORKFLOW_REF ?? 'main';
+const WORKFLOW_REF = process.env.WORKFLOW_REF ?? 'master';
 
 /** PR actions worth reviewing. Everything else (labels, assignment, closes) is noise. */
 const REVIEWABLE = new Set(['opened', 'synchronize', 'reopened', 'ready_for_review']);
@@ -29,6 +29,19 @@ const SKIP_AUTHORS = new Set(
 
 /** Past this, review quality degrades and cost climbs. Reviewed by hand instead. */
 const MAX_CHANGED_LINES = 3000;
+
+/**
+ * Pull requests from forks are skipped by default.
+ *
+ * The runner checks out the reviewed branch while holding a token with
+ * pull-request write access across the org. The reviewer never executes that
+ * code — but it reads it, and text under review is a plausible route to
+ * prompt injection. On a fork PR the author is, by definition, someone
+ * outside the org.
+ *
+ * Set REVIEW_FORKS=true only if you accept that.
+ */
+const REVIEW_FORKS = process.env.REVIEW_FORKS === 'true';
 
 function verify(rawBody: string, signature: string | null, secret: string): boolean {
   if (!signature) return false;
@@ -82,6 +95,8 @@ async function handle(rawBody: string, event: string | null): Promise<Response> 
     : pr.draft ? 'pull request is a draft'
     : SKIP_AUTHORS.has(pr.user?.login) ? `author is ${pr.user?.login}`
     : !repoAllowed(repo) ? 'repo is not in REVIEW_REPOS'
+    : !REVIEW_FORKS && pr.head?.repo?.full_name && pr.head.repo.full_name !== repo
+      ? 'pull request is from a fork (set REVIEW_FORKS=true to allow)'
     : (pr.additions ?? 0) + (pr.deletions ?? 0) > MAX_CHANGED_LINES ? 'diff is too large'
     : null;
 

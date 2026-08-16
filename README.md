@@ -103,9 +103,10 @@ same way — see the `claude-code-action` docs for the input names.
 | `WEBHOOK_SECRET` | Shared secret for the org webhook. `openssl rand -hex 32` |
 | `WORKFLOW_REPO` | This repo, as `owner/name` |
 | `DISPATCH_TOKEN` | Fine-grained PAT scoped to **this repo only**, Actions `write`. Leave unset to verify and log without triggering anything |
-| `WORKFLOW_REF` | Branch to run the workflow from. Default `main` |
+| `WORKFLOW_REF` | Branch to run the workflow from. Default `master` — set this if your fork uses `main` |
 | `REVIEW_REPOS` | Optional comma-separated allowlist while you roll out. Unset means every repo |
 | `SKIP_AUTHORS` | Optional. Defaults to dependabot / renovate / github-actions |
+| `REVIEW_FORKS` | Review pull requests from forks. Default `false` — see [Security](#security) |
 
 ### 4. The org webhook
 
@@ -157,6 +158,49 @@ nit, cap the nits, list what to skip, and set the standard of evidence required
 before a finding is posted.
 
 ---
+
+## Security
+
+The design point worth understanding before you deploy this: **a runner holds a
+token with pull-request write access across your whole organisation, while
+reading code somebody else wrote.**
+
+What that means in practice, and what is done about it:
+
+**The reviewer reads. It never executes.** Tools are restricted to
+`Read`, `Grep`, `Glob`, `Write` and two narrow `gh` prefixes. No install, no
+build, no test run. A contributor's branch is never executed next to your
+credentials — resist the temptation to add a build step so the reviewer can
+"check it compiles".
+
+**Fork pull requests are skipped by default.** A fork author is outside your
+org, and the branch they wrote is about to be read by a model holding your
+token. `REVIEW_FORKS=true` turns it on if you accept that.
+
+**Prompt injection is mitigated, not solved.** The prompt states that the diff
+and the source are data rather than instructions, and that anything in them
+attempting to redirect the review is itself a finding. That is a real
+mitigation and it demonstrably changes behaviour, but it is not a guarantee.
+Assume a determined injection could get the reviewer to make `gh` calls within
+the token's scope — which is why the next point matters.
+
+**Two tokens, deliberately different sizes.** The org-wide token
+(`ORG_REVIEW_TOKEN`) lives only in Actions secrets and never leaves the runner.
+The webhook handler sits on a public URL and gets a separate token scoped to
+one repo with Actions `write` — enough to start the workflow, not enough to
+change it. Do not collapse them into one.
+
+Keep `ORG_REVIEW_TOKEN` on Contents `read`. Write access to contents would let
+a successful injection modify the workflow that reads your other secrets.
+
+**Deploy your instance from a private repo.** Public repositories have public
+Actions logs, and those logs name the repositories being reviewed and can
+contain fragments of their diffs. Fork this, keep your copy private, and take
+updates from here.
+
+**Verify the signature over the raw body.** Already done, with a constant-time
+comparison — noted because re-serialising the JSON first is the natural mistake
+and it silently breaks the check.
 
 ## Known limitation
 
