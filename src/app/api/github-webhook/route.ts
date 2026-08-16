@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
  */
 const WORKFLOW_REPO = process.env.WORKFLOW_REPO ?? '';
 const WORKFLOW_FILE = process.env.WORKFLOW_FILE ?? 'review.yml';
-const WORKFLOW_REF = process.env.WORKFLOW_REF ?? 'main';
+const WORKFLOW_REF = process.env.WORKFLOW_REF ?? 'master';
 
 /** PR actions worth reviewing. Everything else (labels, assignment, closes) is noise. */
 const REVIEWABLE = new Set(['opened', 'synchronize', 'reopened', 'ready_for_review']);

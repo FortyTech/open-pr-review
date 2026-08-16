@@ -103,7 +103,7 @@ same way — see the `claude-code-action` docs for the input names.
 | `WEBHOOK_SECRET` | Shared secret for the org webhook. `openssl rand -hex 32` |
 | `WORKFLOW_REPO` | This repo, as `owner/name` |
 | `DISPATCH_TOKEN` | Fine-grained PAT scoped to **this repo only**, Actions `write`. Leave unset to verify and log without triggering anything |
-| `WORKFLOW_REF` | Branch to run the workflow from. Default `main` |
+| `WORKFLOW_REF` | Branch to run the workflow from. Default `master` — set this if your fork uses `main` |
 | `REVIEW_REPOS` | Optional comma-separated allowlist while you roll out. Unset means every repo |
 | `SKIP_AUTHORS` | Optional. Defaults to dependabot / renovate / github-actions |
 
