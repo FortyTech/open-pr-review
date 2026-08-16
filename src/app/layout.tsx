@@ -1,4 +1,4 @@
-export const metadata = { title: 'org-pr-review' };
+export const metadata = { title: 'open-pr-review' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

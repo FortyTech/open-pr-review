@@ -18,9 +18,9 @@ Everything else is a nit at most.
 This is the class of bug that diff-reading review reliably misses, and it is
 the reason this reviewer exists. Ask specifically:
 
-- Does this break `next build`? Anything that throws during static prerender
-  will — a database query in a server component with no fallback, a missing
-  env var read at module scope.
+- Does this break the build? Anything that throws during build-time rendering
+  or static generation will — a database query with no fallback, a missing
+  environment variable read at module scope.
 - Does it assume an env var, service or table that won't exist in the
   deployment it's landing in?
 - Does it change behaviour only under a production flag or config?
