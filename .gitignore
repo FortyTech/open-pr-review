@@ -1,0 +1,13 @@
+# Created on the runner by the review workflow
+code/
+pr.diff
+review-posted.txt
+payload.json
+node_modules/
+.next/
+next-env.d.ts
+.env*.local
+tsconfig.tsbuildinfo
+previous-reviews.md
+threads.json
+resolve.txt
